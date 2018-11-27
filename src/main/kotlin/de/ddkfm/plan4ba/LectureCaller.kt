@@ -114,6 +114,10 @@ data class LectureCaller(
 fun JSONArray.mapToLectureModel(userId : Int) : List<Lecture> {
     return this.map { obj ->
         val lectureJson = obj as JSONObject
+        val title = obj.getString("title")
+        val seed = title.hashCode()
+        val hexColor = Random(seed.toLong()).randomHexString()
+
         Lecture(
                 id = 0,
                 userId = userId,
@@ -122,7 +126,7 @@ fun JSONArray.mapToLectureModel(userId : Int) : List<Lecture> {
                 room = obj.getString("room"),
                 remarks = obj.getString("remarks"),
                 instructor = obj.getString("instructor"),
-                color = obj.getString("color"),
+                color = hexColor,
                 allDay = obj.getBoolean("allDay"),
                 description = obj.getString("description"),
                 start = obj.getLong("start"),
@@ -130,4 +134,9 @@ fun JSONArray.mapToLectureModel(userId : Int) : List<Lecture> {
                 exam = obj.getString("remarks").startsWith("Prüfung")
         )
     }
+}
+fun Random.randomHexString() : String {
+    return (0..2)
+            .map{ this.nextInt(256).toString(16) }
+            .joinToString(separator = "", prefix = "#")
 }
