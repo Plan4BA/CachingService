@@ -1,5 +1,5 @@
 FROM library/openjdk:10-jre
-ARG CACHINGSERVICE_VERSION=1.1
+ARG CACHINGSERVICE_VERSION=1.2
 
 COPY target/CachingService-${CACHINGSERVICE_VERSION}-jar-with-dependencies.jar /app/CachingService.jar
 WORKDIR /app
