@@ -36,6 +36,10 @@ data class LectureCaller(
     }
 
     fun workOnQueue(queue : Queue<LectureJob>) {
+        //remove depllicate entries
+        val copyList = queue.distinctBy { it.hashCode() }
+        queue.clear()
+        queue.addAll(copyList)
         while(!queue.isEmpty()) {
             val wholeStartTime = System.currentTimeMillis()
             val threads = (1..config.maxParallelJobs)
@@ -137,6 +141,6 @@ fun JSONArray.mapToLectureModel(userId : Int) : List<Lecture> {
 }
 fun Random.randomHexString() : String {
     return (0..2)
-            .map{ this.nextInt(256).toString(16) }
-            .joinToString(separator = "", prefix = "#")
+            .map{ this.nextInt(256) }
+            .joinToString(separator = "", prefix = "#") { "%02x".format(it) }
 }
