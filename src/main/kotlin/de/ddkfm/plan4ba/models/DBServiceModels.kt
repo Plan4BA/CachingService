@@ -61,4 +61,19 @@ data class Lecture(
         var exam : Boolean,
         var userId : Int
 )
+data class NotificationData(
+        var type : String,
+        var id : Int
+)
+
+data class Notification(
+        var id : Int,
+        var label : String,
+        var description : String,
+        /*var type : String,
+        var viewed : Boolean,
+        var data : NotificationData?,*/
+        var userId : Int
+)
+
 

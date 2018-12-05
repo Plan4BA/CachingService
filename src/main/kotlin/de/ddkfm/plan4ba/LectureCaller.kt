@@ -6,6 +6,7 @@ import de.ddkfm.plan4ba.de.ddkfm.plan4ba.utils.toJson
 import de.ddkfm.plan4ba.de.ddkfm.plan4ba.utils.toModel
 import de.ddkfm.plan4ba.models.Lecture
 import de.ddkfm.plan4ba.models.LectureJob
+import de.ddkfm.plan4ba.models.Notification
 import de.ddkfm.plan4ba.models.User
 import org.json.JSONArray
 import org.json.JSONObject
@@ -93,8 +94,15 @@ data class LectureCaller(
                 .asJson()
                 .body.array
                 .map { (it as JSONObject).toModel(Lecture::class.java) }
-        var changed = false
-        lectures.forEach { changed = changed || !oldLectures.contains(it) }
+                .toMutableList()
+        val mutableLectures = lectures.toMutableList()
+        oldLectures.toList().forEach { oldLecture ->
+            val removed = mutableLectures.removeIf { it.title == oldLecture.title && it.start == oldLecture.start
+                    && it.end == oldLecture.end && it.exam == oldLecture.exam }
+            if(removed)
+                oldLectures.remove(oldLecture)
+        }
+        var changed = mutableLectures.isNotEmpty() || oldLectures.isNotEmpty()
         println("Calendar for User $userId ${if(changed) "changed" else "not changed"}")
         if(changed) {
             val resp = Unirest.delete("${config.dbServiceEndpoint}/lectures?userId=$userId")
@@ -111,6 +119,10 @@ data class LectureCaller(
             user.lastLecturePolling = System.currentTimeMillis()
             Unirest.post("${config.dbServiceEndpoint}/users/$userId")
                     .body(user.toJson())
+                    .asJson()
+            val notification = Notification(0, label = "Stundenplanänderung", description = "Es gab eine Stundenplanänderung", userId = user.id)
+            Unirest.put("${config.dbServiceEndpoint}/notifications")
+                    .body(notification.toJson())
                     .asJson()
         }
     }
