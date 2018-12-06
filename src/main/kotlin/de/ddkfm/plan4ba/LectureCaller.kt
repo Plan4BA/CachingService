@@ -104,6 +104,8 @@ data class LectureCaller(
         }
         var changed = mutableLectures.isNotEmpty() || oldLectures.isNotEmpty()
         println("Calendar for User $userId ${if(changed) "changed" else "not changed"}")
+        val user = (Unirest.get("${config.dbServiceEndpoint}/users/$userId")
+                .toModel(User::class.java).second) as User
         if(changed) {
             val resp = Unirest.delete("${config.dbServiceEndpoint}/lectures?userId=$userId")
                     .asJson()
@@ -113,18 +115,15 @@ data class LectureCaller(
                         .body(lecture.toJson())
                         .toModel(Lecture::class.java)
             }
-
-            val user = (Unirest.get("${config.dbServiceEndpoint}/users/$userId")
-                    .toModel(User::class.java).second) as User
-            user.lastLecturePolling = System.currentTimeMillis()
-            Unirest.post("${config.dbServiceEndpoint}/users/$userId")
-                    .body(user.toJson())
-                    .asJson()
             val notification = Notification(0, label = "Stundenplanänderung", description = "Es gab eine Stundenplanänderung", userId = user.id, type = "lectureChanged")
             Unirest.put("${config.dbServiceEndpoint}/notifications")
                     .body(notification.toJson())
                     .asJson()
         }
+        user.lastLecturePolling = System.currentTimeMillis()
+        Unirest.post("${config.dbServiceEndpoint}/users/$userId")
+                .body(user.toJson())
+                .asJson()
     }
 }
 fun JSONArray.mapToLectureModel(userId : Int) : List<Lecture> {
