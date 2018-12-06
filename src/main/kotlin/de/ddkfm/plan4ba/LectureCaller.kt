@@ -120,7 +120,7 @@ data class LectureCaller(
             Unirest.post("${config.dbServiceEndpoint}/users/$userId")
                     .body(user.toJson())
                     .asJson()
-            val notification = Notification(0, label = "Stundenplanänderung", description = "Es gab eine Stundenplanänderung", userId = user.id)
+            val notification = Notification(0, label = "Stundenplanänderung", description = "Es gab eine Stundenplanänderung", userId = user.id, type = "lectureChanged")
             Unirest.put("${config.dbServiceEndpoint}/notifications")
                     .body(notification.toJson())
                     .asJson()

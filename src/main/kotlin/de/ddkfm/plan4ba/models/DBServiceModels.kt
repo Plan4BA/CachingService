@@ -10,12 +10,13 @@ data class User(
         var lastLectureCall : Long
 )
 
+
 data class Token(
         var token : String,
         var userId : Int,
         var isCalDavToken : Boolean,
-        var isRefreshToken : Boolean,
-        var validTo : Long
+        var validTo : Long,
+        var isRefreshToken : Boolean
 )
 
 data class UserGroup(
@@ -61,6 +62,18 @@ data class Lecture(
         var exam : Boolean,
         var userId : Int
 )
+
+data class Geo(
+        var longitude : Double,
+        var latitude : Double
+)
+
+data class Infotext(
+        var id : Int,
+        var key : String,
+        var description: String,
+        var language : String
+)
 data class NotificationData(
         var type : String,
         var id : Int
@@ -70,10 +83,17 @@ data class Notification(
         var id : Int,
         var label : String,
         var description : String,
-        /*var type : String,
-        var viewed : Boolean,
+        var type : String,
+        /*var viewed : Boolean,
         var data : NotificationData?,*/
         var userId : Int
 )
 
-
+data class Link(
+        var id : Int,
+        var label : String,
+        var url : String,
+        var universityId : Int,
+        var groupId : Int,
+        var language : String
+)
