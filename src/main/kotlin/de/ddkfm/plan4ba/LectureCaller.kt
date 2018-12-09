@@ -52,7 +52,11 @@ data class LectureCaller(
                             val thread = thread {
                                 val start = System.currentTimeMillis()
                                 try {
-                                    val resp = Unirest.get("https://selfservice.campus-dual.de/room/json?userid=${job.matriculationNumber}&hash=${job.hash}")
+                                    val start = (System.currentTimeMillis() / 1000) - 3 * 31 * 24 * 3600
+                                    val end = (System.currentTimeMillis() / 1000) + 3 * 31 * 24 * 3600
+                                    val timestamp = System.currentTimeMillis()
+                                    val resp = Unirest.get("https://selfservice.campus-dual.de/room/json?userid=${job.matriculationNumber}" +
+                                            "&hash=${job.hash}&start=$start&end=$end&_=$timestamp")
                                         .asJson()
                                     val lectures = resp.body.array.mapToLectureModel(job.userId)
                                             .filter { it.start >= (System.currentTimeMillis() / 1000) - 3 * 31 * 24 * 3600 }
