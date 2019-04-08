@@ -26,9 +26,8 @@ import java.util.concurrent.TimeUnit
 val config = Config()
 fun main(args : Array<String>) {
     config.buildFromEnv()
-
+    port(System.getenv("HTTP_PORT")?.toIntOrNull() ?: 8080)
     Unirest.setHttpClient(makeHttpClient())
-    port(8080)
 
     val scheduler = Executors.newScheduledThreadPool(1)
     scheduler.scheduleAtFixedRate(CachingSchedule(), 5, 10, TimeUnit.SECONDS)
