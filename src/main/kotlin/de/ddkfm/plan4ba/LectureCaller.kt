@@ -8,6 +8,7 @@ import de.ddkfm.plan4ba.models.Lecture
 import de.ddkfm.plan4ba.models.LectureJob
 import de.ddkfm.plan4ba.models.Notification
 import de.ddkfm.plan4ba.models.User
+import io.sentry.event.Event
 import org.json.JSONArray
 import org.json.JSONObject
 import java.time.LocalTime
@@ -62,9 +63,16 @@ data class LectureCaller(
                                             .filter { it.start >= (System.currentTimeMillis() / 1000) - 3 * 31 * 24 * 3600 }
                                     updateLectures(job.userId, lectures)
                                 } catch (e : Exception) {
-                                    println("Campus Dual request for ${job.matriculationNumber} throw exception: ")
-                                    e.printStackTrace()
+                                    SentryTurret.log {
+                                        user(username = job.matriculationNumber)
+                                    }.capture(e)
 
+                                }
+                                SentryTurret.log {
+                                    addTag("section", "Caching")
+                                }.event {
+                                    withLevel(Event.Level.INFO)
+                                    withMessage("Thread take ${(System.currentTimeMillis() - start) / 1000.0} s (userId: ${job.userId})")
                                 }
                                 println("Thread take ${(System.currentTimeMillis() - start) / 1000.0} s")
                             }
@@ -73,6 +81,12 @@ data class LectureCaller(
                     }
             threads.forEach { it?.join() }
             println("whole time: ${(System.currentTimeMillis() - wholeStartTime) / 1000.0} s")
+            SentryTurret.log {
+                addTag("section", "Caching")
+            }.event {
+                withLevel(Event.Level.INFO)
+                withMessage("whole time: ${(System.currentTimeMillis() - wholeStartTime) / 1000.0} s")
+            }
         }
     }
 
@@ -108,6 +122,13 @@ data class LectureCaller(
         }
         var changed = mutableLectures.isNotEmpty() || oldLectures.isNotEmpty()
         println("Calendar for User $userId ${if(changed) "changed" else "not changed"}")
+        SentryTurret.log {
+            addTag("section", "changed")
+        }.event {
+            withLevel(Event.Level.INFO)
+            withMessage("Calendar for User $userId ${if(changed) "changed" else "not changed"}")
+        }
+
         val user = (Unirest.get("${config.dbServiceEndpoint}/users/$userId")
                 .toModel(User::class.java).second) as User
         if(changed) {
