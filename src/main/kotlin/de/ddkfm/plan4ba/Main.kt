@@ -51,17 +51,11 @@ fun main(args : Array<String>) {
 
 fun triggerCaching(req : Request, resp : Response) : String {
     resp.type("application/json")
-    try {
-        val job = JSONObject(req.body()).toModel(LectureJob::class.java)
-        val caller = LectureCaller.instance
-        caller.addJob(job)
-        return OK().toJson()
-    } catch (e : Exception) {
-        SentryTurret.log {
-            addTag("section", "triggerCaching")
-        }.capture(e)
-        return BadRequest("bad HTTP-body").toJson()
-    }
+    val job =req.body().toModel<LectureJob>()
+        ?: return BadRequest("bad HTTP-body").toJson()
+    val caller = LectureCaller.instance
+    caller.addJob(job)
+    return OK().toJson()
 }
 
 fun makeHttpClient() : HttpClient? {

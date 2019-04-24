@@ -72,6 +72,12 @@ fun GetRequest.toModel(type : Class<*>) : Pair<Int, Any> = this.asJson().mapMode
 fun HttpRequestWithBody.toModel(type : Class<*>) : Pair<Int, Any> = this.asJson().mapModel(type)
 fun RequestBodyEntity.toModel(type : Class<*>) : Pair<Int, Any> = this.asJson().mapModel(type)
 
+inline fun <reified T> String.toModel() : T? {
+    return  jacksonObjectMapper().readValue(this, T::class.java)
+}
+inline fun <reified T> String.toListModel() : List<T>? {
+    return  jacksonObjectMapper().readValue(this, jacksonObjectMapper().typeFactory.constructCollectionType(List::class.java, T::class.java))
+}
 
 fun String.encode() : String = URLEncoder.encode(this, "UTF-8")
 

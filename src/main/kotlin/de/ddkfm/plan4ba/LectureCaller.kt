@@ -8,6 +8,7 @@ import de.ddkfm.plan4ba.models.Lecture
 import de.ddkfm.plan4ba.models.LectureJob
 import de.ddkfm.plan4ba.models.Notification
 import de.ddkfm.plan4ba.models.User
+import de.ddkfm.plan4ba.utils.DBService
 import io.sentry.event.Event
 import org.json.JSONArray
 import org.json.JSONObject
@@ -91,8 +92,7 @@ data class LectureCaller(
     }
 
     fun fillOvernightQueue() {
-        val users = (Unirest.get("${config.dbServiceEndpoint}/users")
-                .toModel(User::class.java).second as List<User>)
+        val users = DBService.all<User>().maybe ?: return
         users.map { user ->
                 if(!user.userHash.isNullOrEmpty())
                     LectureJob(
@@ -108,11 +108,7 @@ data class LectureCaller(
     }
 
     fun updateLectures(userId : Int, lectures : List<Lecture>) {
-        val oldLectures = Unirest.get("${config.dbServiceEndpoint}/lectures?userId=$userId")
-                .asJson()
-                .body.array
-                .map { (it as JSONObject).toModel(Lecture::class.java) }
-                .toMutableList()
+        val oldLectures = DBService.all<Lecture>("userId" to userId).maybe?.toMutableList() ?: return
         val mutableLectures = lectures.toMutableList()
         oldLectures.toList().forEach { oldLecture ->
             val removed = mutableLectures.removeIf { it.title == oldLecture.title && it.start == oldLecture.start
@@ -128,27 +124,17 @@ data class LectureCaller(
             withLevel(Event.Level.INFO)
             withMessage("Calendar for User $userId ${if(changed) "changed" else "not changed"}")
         }
-
-        val user = (Unirest.get("${config.dbServiceEndpoint}/users/$userId")
-                .toModel(User::class.java).second) as User
+        val user = DBService.get<User>(userId).maybe ?: return
         if(changed) {
             val resp = Unirest.delete("${config.dbServiceEndpoint}/lectures?userId=$userId")
                     .asJson()
             println("lectures for $userId deleted")
-            lectures.forEach{ lecture ->
-                val (status, lectureResp) = Unirest.put("${config.dbServiceEndpoint}/lectures")
-                        .body(lecture.toJson())
-                        .toModel(Lecture::class.java)
-            }
+            lectures.forEach { DBService.create(it) }
             val notification = Notification(0, label = "Stundenplanänderung", description = "Es gab eine Stundenplanänderung", userId = user.id, type = "lectureChanged")
-            Unirest.put("${config.dbServiceEndpoint}/notifications")
-                    .body(notification.toJson())
-                    .asJson()
+            DBService.create(notification)
         }
         user.lastLecturePolling = System.currentTimeMillis()
-        Unirest.post("${config.dbServiceEndpoint}/users/$userId")
-                .body(user.toJson())
-                .asJson()
+        DBService.update(user) { it.id }
     }
 }
 fun JSONArray.mapToLectureModel(userId : Int) : List<Lecture> {
