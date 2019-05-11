@@ -67,6 +67,17 @@ object DBService {
         }
     }
 
+    inline fun <reified T : Any> delete(id : Int) : Maybe<String> {
+        val path = getPath(T::class.java, id.toString())
+        val response = Unirest.delete(path)
+            .asString()
+        if(response.status in listOf(200, 201)) {
+            return Maybe.of(response.body)
+        } else {
+            return Maybe.ofError(HttpStatus(response.status, response.body))
+        }
+    }
+
     fun getPath(clazz : Class<*>, id : String? = null) : String {
         var path = "${config.dbServiceEndpoint}/"
         path += when(clazz) {
@@ -77,6 +88,13 @@ object DBService {
             University::class.java -> "universities"
             User::class.java -> "users"
             UserGroup::class.java -> "groups"
+            AppVersion::class.java -> "app"
+            ExamStat::class.java -> "examstats"
+            LatestExamResult::class.java -> "latest"
+            LectureChange::class.java -> "changes"
+            Reminder::class.java -> "reminders"
+            Upcoming::class.java -> "upcoming"
+            NotificationTranslation::class.java -> "translations"
             else -> ""
         }
         path += if(id != null) "/$id" else ""
