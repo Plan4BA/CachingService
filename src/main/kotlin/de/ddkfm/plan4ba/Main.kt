@@ -5,6 +5,7 @@ import de.ddkfm.plan4ba.de.ddkfm.plan4ba.utils.toJson
 import de.ddkfm.plan4ba.de.ddkfm.plan4ba.utils.toModel
 import de.ddkfm.plan4ba.models.*
 import io.sentry.event.Event
+import io.sentry.event.interfaces.SentryStackTraceElement
 import org.apache.http.client.HttpClient
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory
 import org.apache.http.conn.ssl.TrustStrategy
@@ -14,8 +15,10 @@ import org.apache.http.ssl.SSLContextBuilder
 import org.json.JSONObject
 import spark.Request
 import spark.Response
+import spark.Spark
 import spark.Spark.*
 import spark.kotlin.get
+import java.lang.Exception
 import java.net.InetAddress
 import java.security.KeyManagementException
 import java.security.KeyStoreException
@@ -37,6 +40,9 @@ fun main(args : Array<String>) {
     post("/trigger", ::triggerCaching)
     get("/all") { _, _ -> LectureCaller.instance.fillOvernightQueue(); ""}
 
+    exception(Exception::class.java) { e, req, resp ->
+        SentryTurret.log {  }.capture(e)
+    }
     val dsn = System.getenv("SENTRY_DSN")
     dsn?.let {
         println("DSN $dsn joined")
