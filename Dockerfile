@@ -1,4 +1,4 @@
-FROM library/openjdk:11-jre
+FROM library/openjdk:12
 ARG CACHINGSERVICE_VERSION=1.4
 
 COPY target/CachingService-${CACHINGSERVICE_VERSION}-jar-with-dependencies.jar /app/CachingService.jar
