@@ -80,8 +80,10 @@ data class Notification(
     var id : Int,
     var type : String,
     var userId : Int,
-    var versionId : Int?
+    var versionId : Int?,
+    var timestamp : Long
 )
+
 data class NotificationTranslation(
     var id : Int,
     var type : String,

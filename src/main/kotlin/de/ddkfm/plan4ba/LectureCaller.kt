@@ -206,7 +206,7 @@ data class LectureCaller(
         println("Calendar for User $userId ${if(changed) "changed" else "not changed"}")
         val user = DBService.get<User>(userId).maybe ?: return
         if(changed) {
-            val notification = DBService.create(Notification(0, userId = user.id, type = "lectureChanged", versionId = null)).maybe
+            val notification = DBService.create(Notification(0, userId = user.id, type = "lectureChanged", versionId = null, timestamp = System.currentTimeMillis())).maybe
             if(notification == null)
                 throw java.lang.Exception("could not create a notification")
             val changes = mutableListOf<LectureChange>()
