@@ -124,7 +124,8 @@ data class ExamStat(
 data class AppVersion(
     var id : Int,
     var version : String,
-    var timestamp : Long
+    var timestamp : Long,
+    var description: String
 )
 
 data class LatestExamResult(
